@@ -1,4 +1,36 @@
+import Redis from "ioredis";
 import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
+
+const generateTokens = (userId) => {
+    const acessToken = jwt.sign({ userId }, process.env.ACESS_TOKEN_SECRET, {
+        expiresIn: "15m",
+    })
+        const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: "7d",
+    })
+    return {acessToken, refreshToken}
+};
+
+const storeRefreshToken = async(userId, refreshToken) => {
+    await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7*24*60*60);
+}
+
+const setCookies = (res, acessToken, refreshToken) => {
+    res.cookie("acessToken", acessToken, {
+        httpOnly: true,
+        secure:process.env.NODE_ENV === "production",
+        sameSite:"strict", 
+        maxAge: 15 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure:process.env.NODE_ENV === "production",
+        sameSite:"strict", 
+        maxAge: 15 * 24 * 60 * 1000,
+    });
+}
+
 
 export const signup = async (req, res) => {
     const {email, password, name} = req.body
@@ -10,7 +42,19 @@ export const signup = async (req, res) => {
     }
     const user = await User.create({name, email, password});
 
-    res.status(201).json({ user, message: "User created"});
+    const {acessToken, refreshToken} = generateTokens(user._id);
+    await storeRefreshToken(user._id, refreshToken);
+
+    setCookies(res, acessToken, refreshToken);
+
+    res.status(201).json({ user:{
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    },
+        message: "User created",
+    });
 } catch(error){
     res.status(500).json({message: error.message});
     }
@@ -19,5 +63,9 @@ export const login = async (req, res) => {
     res.send("Login up route called");
 }
 export const logout = async (req, res) => {
-    res.send("Logout up route called");
+    try{
+        const refreshToken = req.cookies.refreshToken;
+    } catch (error){
+
+    }
 }
