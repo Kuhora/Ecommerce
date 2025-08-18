@@ -1,6 +1,6 @@
 import { redis } from "../lib/redis.js";
-import cloudinary from "../lib/cloudinary";
-import Product from "../models/product.model"
+import cloudinary from "../lib/cloudinary.js";
+import Product from "../models/product.model.js"
 
 export const getAllProducts = async (req, res) => {
     try{
@@ -88,7 +88,7 @@ export const deleteProduct = async (req, res) => {
 
 export const getRecommendedProducts = async (req, res) => {
     try {
-        const products = await Product.aggreagate([
+        const products = await Product.aggregate([
         {
             $sample: {size: 3}
         },
@@ -145,3 +145,13 @@ async function updateFeaturedProductsCache() {
         console.log("error in update cache function");
     }
 }
+
+export default {
+    getAllProducts,
+    getFeaturedProducts,
+    createProduct,
+    deleteProduct,
+    getRecommendedProducts,
+    getProductsByCategory,
+    toggleFeaturedProduct
+};

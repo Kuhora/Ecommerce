@@ -1,16 +1,16 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model";
+import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
     try{
-        const acessToken = req.cookies.acessToken;
+        const accessToken = req.cookies.accessToken;
 
-        if(!acessToken){
-            return res.status(401).json({ message: "Unauthorized - No acess no token provided"});
+        if(!accessToken){
+            return res.status(401).json({ message: "Unauthorized - No access no token provided"});
         }
 
         try{
-            const decoded = jwt.verify(acessToken, process.env.ACESS_TOKEN_SECRET);
+            const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
             const user = await User.findById(decoded.userId).select("-password");
 
             if(!user) {
@@ -27,7 +27,7 @@ export const protectRoute = async (req, res, next) => {
         }
     } catch (error) {
         console.log("Error in protectRoute middleware", error.message);
-        return res.status(401).json({ message: "Unauthorized - invalid acess token"});
+        return res.status(401).json({ message: "Unauthorized - invalid access token"});
     }
 }
 
@@ -36,6 +36,6 @@ export const adminRoute = (req, res, next) => {
     if(req.user && req.user.role === "admin"){
         next()
     } else {
-        return res.status(403).json({message: "Acess denied - Admin only"});
+        return res.status(403).json({message: "Access denied - Admin only"});
     }
 }
