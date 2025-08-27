@@ -1,4 +1,4 @@
-import CategoryItem from "../components/CategoryItem";
+import CategoryItem from "../components/CategoryItem.jsx";
 
 const categories = [
 	{ href: "/jeans", name: "Jeans", imageUrl: "/jeans.jpg" },
